@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI项目工作台｜周报数据化演示</title>
+<style>
+:root{
+  --bg:#f5f7fb; --card:#fff; --text:#182230; --muted:#7a8494;
+  --line:#e8ecf2; --blue:#3478f6; --blue2:#eaf2ff;
+  --green:#16a673; --greenbg:#e9f8f2; --orange:#e88919; --orangebg:#fff4e4;
+  --red:#df4d4d; --redbg:#fff0f0; --purple:#7656d6; --purplebg:#f1edff;
+  --shadow:0 2px 12px rgba(27,39,61,.05);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+button{font:inherit}
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;background:#fff;border-right:1px solid var(--line);padding:22px 14px;position:fixed;top:0;bottom:0}
+.logo{font-weight:700;font-size:18px;padding:0 12px 24px}
+.logo span{color:var(--blue)}
+.nav{display:flex;flex-direction:column;gap:5px}
+.nav button{border:0;background:transparent;text-align:left;padding:11px 13px;border-radius:9px;color:#566173;cursor:pointer}
+.nav button.active,.nav button:hover{background:var(--blue2);color:var(--blue);font-weight:600}
+.main{margin-left:220px;width:calc(100% - 220px);padding:24px 30px 50px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+h1{font-size:24px;margin:0 0 4px}
+.subtitle{color:var(--muted)}
+.upload{border:1px solid #d8e3f8;background:#fff;color:var(--blue);padding:9px 15px;border-radius:8px;cursor:pointer}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.kpi{padding:18px 20px}
+.kpi .label{color:var(--muted);font-size:13px}.kpi .num{font-size:27px;font-weight:700;margin:6px 0}.kpi .desc{font-size:12px;color:var(--muted)}
+.section{margin-top:18px}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.section-head h2{font-size:16px;margin:0}
+.two{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}
+.card-pad{padding:18px}
+.project-tabs{display:flex;gap:8px;margin-bottom:14px}
+.project-tabs button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 13px;cursor:pointer;color:#657084}
+.project-tabs button.active{background:var(--blue);color:white;border-color:var(--blue)}
+.bar-row{display:grid;grid-template-columns:82px 1fr 48px;gap:10px;align-items:center;margin:12px 0}
+.bar{height:8px;background:#edf0f5;border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);border-radius:8px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:500;background:#fafbfc}
+td{font-size:13px}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px}
+.green{color:var(--green);background:var(--greenbg)} .orange{color:var(--orange);background:var(--orangebg)}
+.red{color:var(--red);background:var(--redbg)} .purple{color:var(--purple);background:var(--purplebg)}
+.gray{color:#687386;background:#f1f3f6}.blue{color:var(--blue);background:var(--blue2)}
+.alert{display:flex;gap:10px;padding:12px;border-bottom:1px solid var(--line)}
+.alert:last-child{border:0}.dot{width:7px;height:7px;border-radius:50%;margin-top:8px;flex:none}.dot.red{background:var(--red);padding:0}.dot.orange{background:var(--orange);padding:0}
+.people{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.person{padding:15px}.avatar{width:36px;height:36px;border-radius:50%;background:var(--blue2);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700}
+.person-top{display:flex;gap:10px;align-items:center}.person-name{font-weight:650}.person-role{font-size:12px;color:var(--muted)}
+.chips{margin-top:12px;display:flex;flex-wrap:wrap;gap:5px}.chip{background:#f4f6f9;padding:3px 7px;border-radius:5px;font-size:12px;color:#5d6878}
+.view{display:none}.view.active{display:block}
+.search{border:1px solid var(--line);padding:8px 10px;border-radius:7px;outline:none;width:230px}
+.small{font-size:12px;color:var(--muted)}
+.report-box{border:1px dashed #cfd8e8;padding:18px;text-align:center;border-radius:10px;background:#fafcff}
+.report-box .big{font-size:18px;font-weight:650}.report-box p{color:var(--muted);margin:5px 0 14px}
+.timeline{position:relative;padding-left:22px}.timeline:before{content:"";position:absolute;left:5px;top:3px;bottom:3px;width:2px;background:#e1e7ef}
+.tl{position:relative;margin-bottom:18px}.tl:before{content:"";position:absolute;left:-21px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 1px #bcd0f5}
+.tl b{font-size:13px}.tl p{margin:3px 0;color:#5f6978}
+.footer-note{margin-top:18px;color:var(--muted);font-size:12px}
+@media(max-width:900px){.sidebar{width:170px}.main{margin-left:170px;width:calc(100% - 170px);padding:18px}.grid4{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.people{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">AI<span>项目工作台</span></div>
+    <div class="nav">
+      <button class="active" onclick="showView('dashboard',this)">项目驾驶舱</button>
+      <button onclick="showView('work',this)">全盘工作</button>
+      <button onclick="showView('people',this)">人员工作</button>
+      <button onclick="showView('risk',this)">风险与待办</button>
+      <button onclick="showView('reports',this)">周报数据</button>
+    </div>
+    <div style="position:absolute;bottom:20px;left:25px;right:25px" class="small">
+      演示数据：2026/8/31–9/6<br>来源：团队周报
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>AI项目工作台</h1>
+        <div class="subtitle">把周报变成项目全景，让负责人一屏看清“人、事、进度、风险”</div>
+      </div>
+      <button class="upload" onclick="showView('reports',document.querySelectorAll('.nav button')[4])">＋ 上传本周周报</button>
+    </div>
+
+    <section id="dashboard" class="view active">
+      <div class="grid4">
+        <div class="card kpi"><div class="label">本周识别工作事项</div><div class="num">80+</div><div class="desc">从已上传周报自动拆解</div></div>
+        <div class="card kpi"><div class="label">涉及人员</div><div class="num">6</div><div class="desc">奇莲、佩迎、泽幸、婼丹等</div></div>
+        <div class="card kpi"><div class="label">明确时间节点</div><div class="num">10+</div><div class="desc">9/8、9/9、9/11、9/15等</div></div>
+        <div class="card kpi"><div class="label">待确认/风险事项</div><div class="num">8</div><div class="desc">由周报中的“待确认/进行中”等识别</div></div>
+      </div>
+
+      <div class="section two">
+        <div class="card card-pad">
+          <div class="section-head"><h2>AI班｜工作全景</h2><span class="tag blue">上周周报数据</span></div>
+          <div class="project-tabs"><button class="active">AI班</button><button>AI老师</button></div>
+          <div class="bar-row"><span>系统班</span><div class="bar"><i style="width:82%"></i></div><b>18+</b></div>
+          <div class="bar-row"><span>刷题班</span><div class="bar"><i style="width:68%"></i></div><b>15+</b></div>
+          <div class="bar-row"><span>售卖</span><div class="bar"><i style="width:52%"></i></div><b>8</b></div>
+          <div class="bar-row"><span>班群/答疑</span><div class="bar"><i style="width:45%"></i></div><b>6+</b></div>
+          <div class="bar-row"><span>文档/产品</span><div class="bar"><i style="width:42%"></i></div><b>8+</b></div>
+          <div class="small">注：数量为基于当前周报拆分的演示值，正式版本由AI解析结果实时生成。</div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="section-head"><h2>负责人需要关注</h2><span class="tag red">优先处理</span></div>
+          <div class="alert"><span class="dot red"></span><div><b>课程/配置存在前置确认</b><div class="small">拔高阶段专项训练、课后作业考点等需教研确认。</div></div></div>
+          <div class="alert"><span class="dot orange"></span><div><b>多个事项有明确截止时间</b><div class="small">包含9/8、9/9、9/11、9/15等节点。</div></div></div>
+          <div class="alert"><span class="dot orange"></span><div><b>冲刺班配置持续推进</b><div class="small">涉及测试班、辅导方案、学习计划、班级创建。</div></div></div>
+          <div class="alert"><span class="dot orange"></span><div><b>AI老师问题需要产品闭环</b><div class="small">包括推题、单题提取、学习偏好等用户反馈。</div></div></div>
+        </div>
+      </div>
+
+      <div class="section card card-pad">
+        <div class="section-head"><h2>本周工作结构</h2><span class="small">AI从周报自动归类</span></div>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>人员</th><th>主要工作模块</th><th>代表性工作</th><th>状态/信号</th></tr></thead>
+          <tbody>
+            <tr><td><b>孙奇莲</b></td><td>系统班 / 配置 / 师资</td><td>课程反馈、物料对接、建课、任务配置、数据、功能测试</td><td><span class="tag orange">多项进行中</span></td></tr>
+            <tr><td><b>王佩迎</b></td><td>刷题班 / QA / 配置</td><td>QA文档、日常答疑、冲刺班配置、学习后台</td><td><span class="tag orange">待教研确认</span></td></tr>
+            <tr><td><b>任泽幸</b></td><td>售卖 / 商品 / 数据</td><td>商品创建、发货、退费标准、随材、优惠券、销量</td><td><span class="tag green">持续运营</span></td></tr>
+            <tr><td><b>杨婼丹</b></td><td>数据 / AI老师 / 文档</td><td>半月数据、功能问题、产品手册、权限、点踩</td><td><span class="tag blue">持续跟进</span></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section id="work" class="view">
+      <div class="section-head"><h2>全盘工作事项</h2><input class="search" id="workSearch" oninput="filterTable()" placeholder="搜索课程/配置/人员..."></div>
+      <div class="card table-wrap">
+      <table id="workTable">
+        <thead><tr><th>项目</th><th>模块</th><th>工作事项</th><th>负责人</th><th>时间</th><th>状态</th><th>原文依据</th></tr></thead>
+        <tbody>
+          <tr><td>AI班</td><td>系统班</td><td>拔高刷题阶段图书拆分并核对课前预习ID</td><td>孙奇莲</td><td>—</td><td><span class="tag orange">进行中</span></td><td>周报 P1</td></tr>
+          <tr><td>AI班</td><td>系统班</td><td>拔高阶段申论录播课录课跟进、补笔记、添加任务</td><td>孙奇莲</td><td>最晚9/9</td><td><span class="tag orange">进行中</span></td><td>周报 P1</td></tr>
+          <tr><td>AI班</td><td>系统班</td><td>国考3期资料分析建课并编排进班</td><td>孙奇莲</td><td>9/15</td><td><span class="tag blue">计划</span></td><td>周报 P1-2</td></tr>
+          <tr><td>AI班</td><td>系统班</td><td>数量关系建课进班并检查</td><td>孙奇莲</td><td>9/16上课</td><td><span class="tag blue">计划</span></td><td>周报 P2</td></tr>
+          <tr><td>AI班</td><td>QA/答疑</td><td>每周四检查班群同步问题，更新QA库</td><td>王佩迎</td><td>每周四</td><td><span class="tag green">机制化</span></td><td>周报 P3</td></tr>
+          <tr><td>AI班</td><td>刷题班</td><td>第四阶段实战冲刺套卷配置</td><td>王佩迎</td><td>国庆前</td><td><span class="tag orange">进行中</span></td><td>周报 P3</td></tr>
+          <tr><td>AI班</td><td>冲刺班</td><td>辅导方案、学习计划、班级创建</td><td>王佩迎</td><td>预计下周五</td><td><span class="tag orange">待确认</span></td><td>周报 P3</td></tr>
+          <tr><td>AI班</td><td>售卖</td><td>创建AI刷题冲刺班商品</td><td>任泽幸</td><td>—</td><td><span class="tag green">已完成</span></td><td>周报 P4</td></tr>
+          <tr><td>AI班</td><td>售卖</td><td>每日更新AI班销量数据</td><td>任泽幸</td><td>每日</td><td><span class="tag green">持续</span></td><td>周报 P4</td></tr>
+          <tr><td>AI老师</td><td>数据</td><td>每半个月统计AI刷题班、刷题拔高班数据</td><td>杨婼丹</td><td>每半月</td><td><span class="tag green">持续</span></td><td>周报 P4</td></tr>
+          <tr><td>AI老师</td><td>产品问题</td><td>跟进学员无法提取单题、推题不准、学习偏好等问题</td><td>杨婼丹</td><td>持续</td><td><span class="tag orange">跟进中</span></td><td>周报 P4-5</td></tr>
+          <tr><td>AI老师</td><td>文档</td><td>AI刷题拔高班/AI刷题班/980系统班功能文档更新</td><td>杨婼丹</td><td>9/8、9/11</td><td><span class="tag orange">进行中</span></td><td>周报 P5</td></tr>
+        </tbody>
+      </table></div>
+      <div class="footer-note">演示重点：员工无需重新填写这些字段，系统从原周报中自动提取并结构化。</div>
+    </section>
+
+    <section id="people" class="view">
+      <div class="section-head"><h2>人员工作全景</h2><span class="small">按周报自动汇总</span></div>
+      <div class="people">
+        <div class="card person"><div class="person-top"><div class="avatar">奇</div><div><div class="person-name">孙奇莲</div><div class="person-role">系统班 / 配置 / 师资</div></div></div><div class="chips"><span class="chip">课程反馈</span><span class="chip">物料对接</span><span class="chip">建课进班</span><span class="chip">任务配置</span><span class="chip">数据</span><span class="chip">功能测试</span></div></div>
+        <div class="card person"><div class="person-top"><div class="avatar">佩</div><div><div class="person-name">王佩迎</div><div class="person-role">刷题班 / QA / 配置</div></div></div><div class="chips"><span class="chip">QA文档</span><span class="chip">日常答疑</span><span class="chip">TAPD反馈</span><span class="chip">套卷配置</span><span class="chip">冲刺班配置</span></div></div>
+        <div class="card person"><div class="person-top"><div class="avatar">泽</div><div><div class="person-name">任泽幸</div><div class="person-role">售卖 / 商品 / 数据</div></div></div><div class="chips"><span class="chip">商品</span><span class="chip">发货</span><span class="chip">退费标准</span><span class="chip">随材</span><span class="chip">优惠券</span><span class="chip">销量</span></div></div>
+        <div class="card person"><div class="person-top"><div class="avatar">婼</div><div><div class="person-name">杨婼丹</div><div class="person-role">AI老师 / 数据 / 文档</div></div></div><div class="chips"><span class="chip">半月数据</span><span class="chip">AI老师问题</span><span class="chip">产品手册</span><span class="chip">功能文档</span><span class="chip">权限</span><span class="chip">点踩</span></div></div>
+        <div class="card person"><div class="person-top"><div class="avatar">周</div><div><div class="person-name">周露</div><div class="person-role">AI老师运营与AI班全流程统筹</div></div></div><div class="chips"><span class="chip">项目统筹</span><span class="chip">运营</span><span class="chip">跨模块协调</span></div></div>
+        <div class="card person"><div class="person-top"><div class="avatar">英</div><div><div class="person-name">英琪</div><div class="person-role">AI班流程与配置把控</div></div></div><div class="chips"><span class="chip">流程把控</span><span class="chip">配置</span><span class="chip">QA检查</span></div></div>
+      </div>
+      <div class="section card card-pad">
+        <div class="section-head"><h2>人员视角的价值</h2></div>
+        <p style="margin:0;color:#5e6877">负责人不需要逐份阅读周报，就能看到每个人本周的工作重心、持续事项和待解决问题；点击人员即可下钻到具体工作事项和周报原文。</p>
+      </div>
+    </section>
+
+    <section id="risk" class="view">
+      <div class="section-head"><h2>风险与待办</h2><span class="tag orange">来自周报中的“进行中/待确认/问题”</span></div>
+      <div class="card">
+        <div class="alert"><span class="dot red"></span><div><b>拔高阶段申论录播课</b><div class="small">最晚9/9完成录课；需跟进录课、助教笔记及任务添加。</div></div></div>
+        <div class="alert"><span class="dot orange"></span><div><b>拔高刷题阶段图书定稿</b><div class="small">申论拆分存在问题，下周确认后继续拆分并上传链接。</div></div></div>
+        <div class="alert"><span class="dot orange"></span><div><b>专项训练/课后作业配置</b><div class="small">需要教研确认修改及考点问题，确认后再进行配置。</div></div></div>
+        <div class="alert"><span class="dot orange"></span><div><b>刷题冲刺班后台配置</b><div class="small">需要教研确认突击训练阶段配置；之后完成辅导方案、学习计划和班级创建。</div></div></div>
+        <div class="alert"><span class="dot orange"></span><div><b>功能/产品问题</b><div class="small">包括学员无法提取单题、推题不准、学习偏好等问题，需要产品/技术闭环。</div></div></div>
+      </div>
+      <div class="section two">
+        <div class="card card-pad">
+          <h2 style="font-size:16px">自动生成的“待协调事项”</h2>
+          <div class="timeline">
+            <div class="tl"><b>教研确认 → 配置继续</b><p>专项训练、课后作业、冲刺班配置均出现前置确认。</p></div>
+            <div class="tl"><b>技术反馈 → 产品问题闭环</b><p>AI老师相关用户问题需跟进产品/技术。</p></div>
+            <div class="tl"><b>资料 → 上架/建课</b><p>图书、讲义、课程资料存在多个时间节点。</p></div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <h2 style="font-size:16px">这里应该怎么帮负责人</h2>
+          <p class="small">不是让员工继续填更多字段，而是把周报中的“待确认、进行中、下周、最晚、预计”等语义自动识别出来，形成异常和待协调清单。</p>
+          <p class="small">当同一事项连续出现在多周周报中，再自动标记为“持续事项/长期阻塞”，帮助负责人优先介入。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="reports" class="view">
+      <div class="section-head"><h2>周报数据入口</h2><span class="tag blue">员工侧尽量零填报</span></div>
+      <div class="card card-pad">
+        <div class="report-box">
+          <div class="big">📄 上传周报 → AI自动数据化</div>
+          <p>员工继续按原习惯写周报，不新增复杂填报流程。</p>
+          <button class="upload" onclick="alert('演示：这里接入Word/PDF/Excel周报上传与AI解析。')">选择周报文件</button>
+        </div>
+      </div>
+      <div class="section two">
+        <div class="card card-pad">
+          <h2 style="font-size:16px">AI解析示例</h2>
+          <div class="small">原文</div>
+          <p>“拔高阶段申论录播课最晚9.9完成录课，跟进录课情况找助教补笔记并添加任务。”</p>
+          <div class="small">↓ 自动结构化</div>
+          <table>
+            <tr><td>项目</td><td>AI班</td></tr>
+            <tr><td>模块</td><td>系统班/课程配置</td></tr>
+            <tr><td>事项</td><td>录课跟进、补笔记、添加任务</td></tr>
+            <tr><td>负责人</td><td>孙奇莲</td></tr>
+            <tr><td>截止</td><td>9月9日</td></tr>
+            <tr><td>状态</td><td><span class="tag orange">进行中</span></td></tr>
+          </table>
+        </div>
+        <div class="card card-pad">
+          <h2 style="font-size:16px">最终沉淀的数据</h2>
+          <div class="bar-row"><span>工作事项</span><div class="bar"><i style="width:92%"></i></div><b>√</b></div>
+          <div class="bar-row"><span>人员归属</span><div class="bar"><i style="width:100%"></i></div><b>√</b></div>
+          <div class="bar-row"><span>时间节点</span><div class="bar"><i style="width:86%"></i></div><b>√</b></div>
+          <div class="bar-row"><span>状态</span><div class="bar"><i style="width:90%"></i></div><b>√</b></div>
+          <div class="bar-row"><span>风险/待办</span><div class="bar"><i style="width:82%"></i></div><b>√</b></div>
+          <div class="small">正式系统应保留“AI识别结果 + 原周报原文”双向追溯，避免数据失真。</div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+function showView(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+function filterTable(){
+  const q=document.getElementById('workSearch').value.toLowerCase();
+  document.querySelectorAll('#workTable tbody tr').forEach(tr=>{
+    tr.style.display=tr.innerText.toLowerCase().includes(q)?'':'none';
+  });
+}
+</script>
+</body>
+</html>
